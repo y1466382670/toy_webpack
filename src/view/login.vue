@@ -1,5 +1,5 @@
 <template>
-  <div style="background: url('http://big5.wallcoo.com/nature/Magic_Landscapes_by_Michael_Breitung/wallpapers/1920x1080/yaki-point.jpg')">
+  <div style="">
     <div style="display: flex;justify-content: center;margin-top: 10%">
       <el-card>
         <div slot="header" class="clearfix">
@@ -80,6 +80,14 @@ export default {
   }
   .box-card {
     width: 480px;
+  }
+  body{
+    /*设置内部填充为0，几个布局元素之间没有间距*/
+    padding: 0px;
+      /*外部间距也是如此设置*/
+    margin: 0px;
+    /*统一设置高度为100%*/
+    background: url('http://img.pconline.com.cn/images/upload/upc/tx/wallpaper/1208/15/c0/12924355_1344999165555.jpg') no-repeat;
   }
 </style>
 

@@ -3,6 +3,8 @@ import Router from 'vue-router'
 import Login from '@/view/login'
 import Home from '@/view/home'
 import Index from '@/view/index'
+import BookClassify from '@/view/book_classify/bookClassify'
+import BookInfo from '@/view/book_info/bookInfo'
 
 Vue.use(Router)
 
@@ -27,6 +29,16 @@ export default new Router({
           path: '/index',
           name: 'index',
           component: Index
+        },
+        {
+          path: '/bookClassify',
+          name: 'bookClassify',
+          component: BookClassify
+        },
+        {
+          path: '/bookInfo',
+          name: 'bookInfo',
+          component: BookInfo
         }
       ]
     }

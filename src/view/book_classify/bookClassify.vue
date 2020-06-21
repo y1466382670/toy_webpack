@@ -17,7 +17,7 @@
     <el-card class="box-card">
       <el-table
         :data="tableData"
-        stripe=true
+        stripe
         style="width: 98%; align:center"
         :height="Height" >
         <el-table-column
@@ -55,8 +55,11 @@
           fixed="right"
           label="操作"
           align="center"
-          min-width="150">
+          min-width="250">
           <template slot-scope="scope">
+            <el-button
+              size="mini"
+              @click="handleLook(scope.$index, scope.row)">查看</el-button>
             <el-button
               size="mini"
               @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
@@ -151,6 +154,14 @@ import qs from 'qs'
         this.pageNo = 1
         this.pageSize = 10
         this.getList()
+      },
+      handleLook(index, rows){
+        this.$router.push({
+          path: '/bookClassifyDetail',
+          query: {
+            bookClassifyCode: rows.bookClassifyCode
+          }
+        })
       }
     },
     //进入页面默认加载方法

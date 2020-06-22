@@ -4,15 +4,20 @@
     <el-card style="height: 100px">
       <el-form :inline="true" :model="formInline" class="demo-form-inline">
         <el-form-item label="分类名称">
-          <el-input v-model="formInline.bookClassifyName" placeholder="分类名称"></el-input>
+          <el-input clearable @clear="clearComent" v-model="formInline.bookClassifyName" placeholder="分类名称"></el-input>
         </el-form-item>
         <el-form-item label="分类编码">
-          <el-input v-model="formInline.bookClassifyCode" placeholder="分类编码"></el-input>
+          <el-input clearable @clear="clearComent" v-model="formInline.bookClassifyCode" placeholder="分类编码"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onSearch">查询</el-button>
         </el-form-item>
       </el-form>
+    </el-card>
+    <el-card style="height: 70px">
+      <el-button type="primary" @click="insertDialogVisible = true" class="add">新 增</el-button>
+      <el-button type="primary" @click="importInfo" class="add">导 入</el-button>
+      <el-button type="primary" @click="exportInfo" class="add">导 出</el-button>
     </el-card>
     <el-card class="box-card">
       <el-table
@@ -59,7 +64,7 @@
           <template slot-scope="scope">
             <el-button
               size="mini"
-              @click="handleLook(scope.$index, scope.row)">查看</el-button>
+              @click="handleLook(scope.$index, scope.row)">查看子分类</el-button>
             <el-button
               size="mini"
               @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
@@ -83,6 +88,43 @@
         :total="total">
       </el-pagination>
     </el-card>
+
+    <el-dialog title="添加" :visible.sync="insertDialogVisible" width="30%">
+      <el-form ref="insertForm" :rules="rules" :model="insertForm" label-width="100px">
+        <el-form-item label="分类编码" prop="bookClassifyCode">
+          <el-input v-model="insertForm.bookClassifyCode"></el-input>
+        </el-form-item>
+        <el-form-item label="分类名称" prop="bookClassifyName">
+          <el-input v-model="insertForm.bookClassifyName"></el-input>
+        </el-form-item>
+        <el-form-item label="排序" prop="sort">
+          <el-input v-model="insertForm.sort"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="insert('insertForm')">添加</el-button>
+          <el-button @click="insertDialogVisible = false">取消</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+
+    <el-dialog title="修改" :visible.sync="updateDialogVisible" width="30%">
+      <el-form ref="updateForm" :rules="rules" :model="updateForm" label-width="100px">
+        <el-form-item label="分类编码" prop="bookClassifyCode">
+          <el-input v-model="updateForm.bookClassifyCode"></el-input>
+        </el-form-item>
+        <el-form-item label="分类名称" prop="bookClassifyName">
+          <el-input v-model="updateForm.bookClassifyName"></el-input>
+        </el-form-item>
+        <el-form-item label="排序" prop="sort">
+          <el-input v-model="updateForm.sort"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="update('updateForm')">添加</el-button>
+          <el-button @click="updateDialogVisible = false">取消</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -91,6 +133,8 @@ import qs from 'qs'
   export default {
     data() {
       return {
+        insertDialogVisible: false,
+        updateDialogVisible: false,
         Height: 582,
         tableData: [],
         pageNo: 1,
@@ -99,6 +143,30 @@ import qs from 'qs'
         formInline: {
           bookClassifyName: '',
           bookClassifyCode: ''
+        },
+        //新增form表单
+        insertForm: {
+          bookClassifyCode: '',
+          bookClassifyName: '',
+          sort: ''
+        },
+        //修改form表单
+        updateForm: {
+          id: '',
+          bookClassifyCode: '',
+          bookClassifyName: '',
+          sort: ''
+        },
+        rules: {
+          bookClassifyCode: [
+            { required: true, message: '请填写分类编码', trigger: 'blur' }
+          ],
+          bookClassifyName: [
+            { required: true, message: '请填写分类名称', trigger: 'blur' }
+          ],
+          sort: [
+            { required: true, message: '请填写排序', trigger: 'blur' }
+          ]
         }
       }
     },
@@ -113,17 +181,29 @@ import qs from 'qs'
         this.pageNo = val
         this.getList()
       },
+      //删除
       handleDelete(index, rows) {
         this.$confirm('此操作将删除该记录, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          console.log(rows.id)
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
+          let params = {
+            id: rows.id
+          }
+          this.$ajax.post('/product/book.classify.delete', qs.stringify(params)).then(res =>{
+            if(res.data.code == 200){
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              });
+              this.getList()
+            }else{
+              this.$message.error(res.data.msg)
+            }
+          }).catch(error => {
+            this.$message.error(res.data.msg)
+          })
         }).catch(() => {
           this.$message({
             type: 'info',
@@ -135,7 +215,9 @@ import qs from 'qs'
       getList () {
         let params = {
           pageNo: this.pageNo,
-          pageSize: this.pageSize
+          pageSize: this.pageSize,
+          bookClassifyName: this.formInline.bookClassifyName,
+          bookClassifyCode: this.formInline.bookClassifyCode
         }
         this.getDataList(params)
       },
@@ -154,6 +236,97 @@ import qs from 'qs'
         this.pageNo = 1
         this.pageSize = 10
         this.getList()
+      },
+      // 清空输入框
+      clearComent () {
+        this.getList()
+      },
+      //添加
+      insert(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.$ajax.post('/product/book.classify.save', qs.stringify(this.insertForm)).then(res =>{
+              if(res.data.code == 200){
+                this.$message({
+                  message: '添加成功',
+                  type: 'success'
+                })
+                this.insertForm.bookClassifyCode = ''
+                this.insertForm.bookClassifyName = ''
+                this.insertForm.sort = ''
+                this.insertDialogVisible = false
+                this.getList()
+              }else{
+                this.$message.error(res.data.msg)
+              }
+            }).catch(error => {
+              this.$message.error(res.data.msg)
+            })
+          } else {
+            return false;
+          }
+        });
+      },
+      //点击编辑按钮，查询信息
+      handleEdit(index, rows) {
+        let params = {
+          id: rows.id
+        }
+        this.$ajax.post('/product/book.classify.get', qs.stringify(params)).then(res =>{
+          if(res.data.code == 200){
+            this.updateForm.id = res.data.result.id
+            this.updateForm.bookClassifyCode = res.data.result.bookClassifyCode
+            this.updateForm.bookClassifyName = res.data.result.bookClassifyName
+            this.updateForm.sort = res.data.result.sort
+          }else{
+            this.$message.error(res.data.msg)
+          }
+        }).catch(error => {
+          this.$message.error(res.data.msg)
+        })
+        this.updateDialogVisible = true
+      },
+      //修改
+      update(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.$ajax.post('/product/book.classify.modify', qs.stringify(this.updateForm)).then(res =>{
+              if(res.data.code == 200){
+                this.$message({
+                  message: '修改成功',
+                  type: 'success'
+                })
+                this.updateForm.id = ''
+                this.updateForm.bookClassifyCode = ''
+                this.updateForm.bookClassifyName = ''
+                this.updateForm.sort = ''
+                this.updateDialogVisible = false
+                this.getList()
+              }else{
+                this.$message.error(res.data.msg)
+              }
+            }).catch(error => {
+              this.$message.error(res.data.msg)
+            })
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
+      },
+      // 导入
+      importInfo () {
+        this.$message({
+          message: '导入成功',
+          type: 'success'
+        })
+      },
+      // 导出
+      exportInfo () {
+        this.$message({
+          message: '导出成功',
+          type: 'success'
+        })
       },
       handleLook(index, rows){
         this.$router.push({

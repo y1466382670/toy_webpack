@@ -310,7 +310,7 @@ import qs from 'qs'
         })
         this.updateDialogVisible = true
       },
-      //添加
+      //修改
       update(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
